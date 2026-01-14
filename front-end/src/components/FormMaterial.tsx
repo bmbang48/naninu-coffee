@@ -2,9 +2,8 @@
 import { useEffect, useState } from "react";
 import { useStoreMaterial,useUpdateMaterial } from "../api/useMaterial";
 import { formatCurrency, unformatCurrency, formatNumber } from "../components/FormatCurrency";
-const FormMaterial = ({isActiveForm,setIsActiveForm,formData, mode} : props) =>{
-    
-    interface Props {
+
+interface Props {
         isActiveForm: boolean;
         setIsActiveForm: (isActiveForm: boolean) => void;
         formData?: {
@@ -16,6 +15,9 @@ const FormMaterial = ({isActiveForm,setIsActiveForm,formData, mode} : props) =>{
         };
         mode: 'create' | 'edit';
     }
+const FormMaterial = ({isActiveForm,setIsActiveForm,formData, mode} : Props) =>{
+    
+    
 
     const [localFormData, setLocalFormData] = useState({
         material_name: '',
@@ -27,7 +29,7 @@ const FormMaterial = ({isActiveForm,setIsActiveForm,formData, mode} : props) =>{
     useEffect(()=>{
         if (mode === 'edit' && formData) {
             setLocalFormData({
-                material_name: formData.name || '',
+                material_name: formData.material_name || '',
                 price: formData.price?.toString() || '',
                 amount: formData.amount?.toString() || '',
                 unit: formData.unit || '',
@@ -43,8 +45,8 @@ const FormMaterial = ({isActiveForm,setIsActiveForm,formData, mode} : props) =>{
     }, [formData, mode]);
         
 
-    const {mutate: storeMaterial, isPending: storeIsLoading, isSuccess: storeIsSuccess, isError: storeIsError} = useStoreMaterial();
-    const {mutate: updateMaterial, isPending: updateIsLoading, isSuccess: updateIsSuccess, isError: updateIsError} = useUpdateMaterial();
+    const {mutate: storeMaterial } = useStoreMaterial();
+    const {mutate: updateMaterial} = useUpdateMaterial();
 
 
     const handleSubmit = (e: React.FormEvent)=>{

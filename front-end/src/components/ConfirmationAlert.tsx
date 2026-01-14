@@ -1,4 +1,11 @@
-const ConfirmationAlert = ({isConfirm,setIsConfirm,isConfirmDelete, setIsConfirmDelete}:props) => {
+interface Props{
+    isConfirm: boolean;
+    setIsConfirm: React.Dispatch<React.SetStateAction<boolean>>;
+    isConfirmDelete: boolean;
+    setIsConfirmDelete: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const ConfirmationAlert = ({isConfirm,setIsConfirm,isConfirmDelete, setIsConfirmDelete}:Props) => {
 
 
     const handleCloseForm = () => {

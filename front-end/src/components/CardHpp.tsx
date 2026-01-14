@@ -1,13 +1,18 @@
 import { baseUrl } from "../api/baseUrl";
 import { formatCurrency } from "./FormatCurrency";
-import { useDeleteRecipe,useShowRecipe } from "../api/useRecipe";
+import { useDeleteRecipe} from "../api/useRecipe";
 import { useState } from "react";
 import ConfirmationAlert from "./ConfirmationAlert";
 import CardCost from "./CardCost";
+import { Product } from "../types/product";
+import { Recipe } from "../types/recipe";
 
+interface Props{
+  product: Product;
+  recipes: Recipe[];
+}
 
-
-const CardHpp = ({product, recipes}:props) => {
+const CardHpp = ({product, recipes}:Props) => {
   const hitungPokok = (used, amount, price)=>{
     let hargaBahan = 0;
     if(used && amount && price){
@@ -22,16 +27,12 @@ const CardHpp = ({product, recipes}:props) => {
 
   const keuntungan = product.price - totalHargaPokok;
 
-  const { mutate: deleteRecipe, isLoading: deleteIsLoading } = useDeleteRecipe();
+  const { mutate: deleteRecipe, isPending: deleteIsLoading } = useDeleteRecipe();
   
   // const { data: recipe, isLoading: recipeIsLoading } = useShowRecipe(product.id);
   const [id, setId] = useState(0);
-  const [isConfirm, setIsConfirm] = useState(false);
   const [isConfirmDelete, setIsConfirmDelete] = useState(false);
   const [isActiveConfirmDelete, setIsActiveConfirmDelete] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [idProduct, setIdProduct] = useState(0);
-  const { mutate: recipe, isLoading: recipeIsLoading } = useShowRecipe(idProduct);
   const [isActiveShowRecipe, setIsActiveShowRecipe] = useState(false);
 
   const handleActiveConfirmDelete = (id:number) =>{
@@ -47,9 +48,8 @@ const CardHpp = ({product, recipes}:props) => {
     setIsConfirmDelete(false);
   }
 
-  const handleShowRecipe = (id:number) => {
+  const handleShowRecipe = () => {
     // console.log(id);
-    setIdProduct(id);
     setIsActiveShowRecipe(true);
     // showRecipe(id);
     // console.log(idProduct);
@@ -79,39 +79,24 @@ const CardHpp = ({product, recipes}:props) => {
                                 <div className="col-lg-4 col-12 p-0 stat-item">
                                     <div className="stat-label">Cost</div>
                                     <div className="stat-value cost-value">
-                                        {totalHargaPokok.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        maximumFractionDigits: 0,
-                                        minimumFractionDigits: 0
-                                      })}</div>
+                                        {formatCurrency(Math.round(totalHargaPokok))}</div>
                                 </div>
                                 <div className="col-lg-4 col-12 p-0 stat-item">
                                     <div className="stat-label">Price</div>
                                     <div className="stat-value">
-                                        {product.price.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        maximumFractionDigits: 0,
-                                        minimumFractionDigits: 0
-                                      })}
+                                        {formatCurrency(Math.round(product.price))}
                                     </div>
                                 </div>
                                 <div className="col-lg-4 col-12 p-0 stat-item">
                                     <div className="stat-label">Profit</div>
                                     <div className="stat-value profit-value">
-                                      {keuntungan.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        maximumFractionDigits: 0,
-                                        minimumFractionDigits: 0
-                                      })}
+                                      {formatCurrency(Math.round(keuntungan))}
                                     </div>
                                 </div>
                             </div>
                         </div>
               <div className="d-grid gap-2">
-                            <button className="btn btn-success btn-sm" onClick={() => handleShowRecipe(product.id)}>
+                            <button className="btn btn-success btn-sm" onClick={() => handleShowRecipe()}>
                                 <i className="bi bi-pie-chart me-1"></i>Cost Details
                             </button>
                             <button className="btn btn-danger btn-sm" onClick={()=>handleActiveConfirmDelete(product.id)}>
@@ -122,7 +107,7 @@ const CardHpp = ({product, recipes}:props) => {
     </div>  
     {
       isActiveShowRecipe && (
-        <CardCost product={product} recipes={recipes} isActiveShowRecipe={isActiveShowRecipe}  setIsActiveShowRecipe={setIsActiveShowRecipe}/>
+        <CardCost product={product} recipes={recipes??[]} isActiveShowRecipe={isActiveShowRecipe}  setIsActiveShowRecipe={setIsActiveShowRecipe}/>
       )
     }
     </>

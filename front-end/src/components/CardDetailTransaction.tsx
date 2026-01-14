@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useEffect, useState } from "react";
 import { formatCurrency, formatLocalDate } from "./FormatCurrency";
 import { getDayName } from "../api/getDate";
 import { useDeleteTransaction } from "../api/useTransaction";
@@ -9,10 +9,18 @@ const CardDetailTransaction = ({selectedDay,onClose})=>{
     const [isActiveConfirmDelete, setIstActiveConfirmDelete] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
     const [id,setId] = useState(0);
-    const {mutate:deleteTransaction, isPending: deleteIsLoading } = useDeleteTransaction();
-
+    const {mutate:deleteTransaction} = useDeleteTransaction();
+    
+    useEffect(()=>{
+        
+        if(!isConfirmDelete) return
+        console.log('Delete');
+        deleteTransaction(id);
+        setIsConfirmDelete(false);
+        
+    },[isConfirmDelete,id,deleteTransaction,selectedDay])
     if(!selectedDay) return null;
-
+    
     const {date,transaction} = selectedDay;
 
     const dailyRevenue = transaction.reduce(
@@ -25,11 +33,7 @@ const CardDetailTransaction = ({selectedDay,onClose})=>{
       setIstActiveConfirmDelete(!isActiveConfirmDelete); 
     }
     
-      if(isConfirmDelete){
-      console.log('Delete');
-      deleteTransaction(id);
-      setIsConfirmDelete(false);
-    }
+    
 
     return (
         <div className="popup-overlay">

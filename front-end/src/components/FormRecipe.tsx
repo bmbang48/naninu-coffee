@@ -1,24 +1,25 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useStoreRecipe } from "../api/useRecipe";
 import { useProducts } from "../api/useProduct";
 import { useAllMaterials } from "../api/useMaterial";
+import { Product } from "../types/product";
+import { Material } from "../types/material";
+import { StoreRecipePayload } from "../types/recipe";
 
 
-const RecipeForm = ({ products, materials, isActiveForm, setIsActiveForm, mode } : props) => {
-    interface Props {
-        products: any[];
-        materials: any[];
+interface Props {
         isActiveForm: boolean;
         setIsActiveForm: (isActiveForm: boolean) => void;
-        mode : 'edit' | 'create';
     }
+const RecipeForm = ({ isActiveForm, setIsActiveForm} : Props) => {
+
     const [selectedProduct, setSelectedProduct] = useState("");
     const [selectedMaterials, setSelectedMaterials] = useState([{ id_material: "", amount_used: "" }]);
 
     const {data: dataProducts, isLoading:productsIsLoading, error: productsError} = useProducts();
     const listProduct = dataProducts?.data??[];
 
-    const {data: dataMaterials, isLoading:materialsIsLoading, error: materialsError} = useAllMaterials();
+    const {data: dataMaterials, isPending:materialsIsLoading, error: materialsError} = useAllMaterials();
 
     const { mutate: storeRecipe } = useStoreRecipe();
 
@@ -37,11 +38,17 @@ const RecipeForm = ({ products, materials, isActiveForm, setIsActiveForm, mode }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const payload = {
-            id_product: selectedProduct,
-            materials: selectedMaterials,
-        };
-        storeRecipe(payload);
+        
+        const payload: StoreRecipePayload = {
+            id_product: Number(selectedProduct),
+            materials: selectedMaterials.map(m => ({
+                id_material: Number(m.id_material),
+                amount_used: Number(m.amount_used)
+            }))
+            };
+
+storeRecipe(payload);
+
         setSelectedProduct("");
         setSelectedMaterials([{ id_material: "", amount_used: "" }]);
         if(isActiveForm){
@@ -71,19 +78,19 @@ const RecipeForm = ({ products, materials, isActiveForm, setIsActiveForm, mode }
                         productsError ? (
                             <option value="">{productsError.message}</option>
                         ) : 
-                        listProduct.data.map((p: any) => (
+                        (listProduct.data as Product[] | undefined)?.map((p) => (
                         <option key={p.id} value={p.id}>{p.product_name}</option>
                         ))
                     }
                 </select>
             </div>
 
-            {selectedMaterials.map((mat, i) => (
+            {materialsError ? (<p>Oops Error Materials</p>) : materialsIsLoading ? <p>Loading...</p> : selectedMaterials.map((mat, i) => (
                 <div key={i} className="mb-3 d-flex gap-2">
                     <select className="form-control" value={mat.id_material}
                         onChange={(e) => handleChangeMaterial(i, "id_material", e.target.value)}>
                         <option value="">-- Pilih Material --</option>
-                        {dataMaterials?.map((m: any) => (
+                        {(dataMaterials as Material[] | undefined)?.map((m) => (
                             <option key={m.id} value={m.id}>{m.name}</option>
                         ))}
                     </select>

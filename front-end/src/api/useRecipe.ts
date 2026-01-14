@@ -1,10 +1,10 @@
-import { number } from "zod";
 import { baseUrl } from "./baseUrl";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getCsrfCookie } from "./csrf";
+// import { Recipe } from "../types/recipe";
+import { StoreRecipePayload, UpdateRecipePayload } from "../types/recipe";
 
-await fetch('http://127.0.0.1:8000/sanctum/csrf-cookie', {
-    credentials: 'include'
-});
+
 const fetchRecipes = async ()=>{
     const response = await fetch(`${baseUrl}/api/recipe-product`, {
         method: 'GET',
@@ -18,7 +18,8 @@ const fetchRecipes = async ()=>{
     }
 
     const json = await response.json();
-    return json.data.data;
+    return JSON.parse(JSON.stringify(json.data.data));
+
 }
 
 export const useRecipes = () =>{
@@ -29,8 +30,9 @@ export const useRecipes = () =>{
 }
 
 
-const storeRecipe = async (payload: any)=>{
+const storeRecipe = async (payload: StoreRecipePayload)=>{
     // console.log(payload);
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/recipe-product`, {
         method: 'POST',
         credentials: 'include',
@@ -54,12 +56,13 @@ export const useStoreRecipe = ()=>{
     return useMutation({
         mutationFn: storeRecipe,
         onSuccess: ()=>{
-            queryClient.invalidateQueries(['recipe']);
+            queryClient.invalidateQueries({ queryKey: ['recipes'] });
         }
     });
 };
 
 const deleteRecipe = async (id: number) => {
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/recipe-product/${id}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -81,7 +84,7 @@ export const useDeleteRecipe = () => {
     return useMutation({
         mutationFn: deleteRecipe,
         onSuccess: () => {
-            queryClient.invalidateQueries(['recipes']);
+            queryClient.invalidateQueries({ queryKey: ['recipes'] });
         }
     });
 }
@@ -112,30 +115,41 @@ export const useShowRecipe = (id: number) => {
 };
 
 
-const updateRecipe = async({ id, data }: { id: number, data: any })=>{
+const updateRecipeRequest = async ({
+  id,
+  data,
+}: {
+  id: number;
+  data: UpdateRecipePayload;
+}) => {
+  await getCsrfCookie();
 
-    console.log("Received : ", id,data);
-    const response = await fetch(`${baseUrl}/api/recipe-product/${id}`,{
-        method: 'POST',
-        credentials: 'include',
-        headers:{
-            'Accept' : 'application/json',
-            'Content-Type': "application/json"
-        },
-        body:JSON.stringify(data),
-    });
-    if(!response.ok){
-        throw new Error('Network response was not ok');
-    }
-    return response.json();
-}
+  const response = await fetch(`${baseUrl}/api/recipe-product/${id}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
 
-export const useUpdateRecipe = ()=>{
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: updateRecipe,
-        onSuccess: ()=>{
-            queryClient.invalidateQueries(['recipes']);
-        }
-    });
-}
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+
+  return response.json();
+};
+
+
+export const useUpdateRecipe = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateRecipeRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    },
+  });
+};
+

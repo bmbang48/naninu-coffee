@@ -1,10 +1,7 @@
 import { baseUrl } from "./baseUrl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCsrfCookie } from "./csrf";
 
-
-await fetch('http://127.0.0.1:8000/sanctum/csrf-cookie', {
-  credentials: 'include'
-});
 
 const fetchMaterials = async (page:number) => {
     const response = await fetch(`${baseUrl}/api/materials?page=${page}`,{
@@ -59,6 +56,7 @@ export const useAllMaterials = () => {
 
 
 const storeMaterial = async (data: FormData) =>{
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/materials`, {
         method: 'POST',
         credentials: 'include',
@@ -89,6 +87,7 @@ export const useStoreMaterial = () => {
 };
 
 const deleteMaterial = async (id: number) => {
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/materials/${id}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -120,6 +119,7 @@ export const useDeleteMaterial = () => {
 
 
 const updateMaterial = async ({id, data}: {id: number, data: FormData}) => {
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/materials/${id}`, {
         method: 'POST',
         credentials: 'include',

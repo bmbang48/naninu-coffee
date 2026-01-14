@@ -2,17 +2,46 @@ import { useEffect, useState } from "react";
 import { useAllMaterials } from "../api/useMaterial";
 import { formatCurrency } from "./FormatCurrency";
 import { useUpdateRecipe } from "../api/useRecipe";
-const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:props)=>{
-    
-    const {data, isLoading:materialsIsLoading, error:materialsError} = useAllMaterials();
-    const emptyMaterial = {id: "", name: "", price: "", unit: "", amount: ""}
-    const [selectedRecipes, setSelectedRecipes] = useState([{material:emptyMaterial, amount_used: ""}]);
-    const {mutate : updateRecipe} = useUpdateRecipe();
+import { Recipe,UpdateRecipePayload } from "../types/recipe";
+import { Product } from "../types/product";
+import { Material } from "../types/material";
 
+interface Props {
+    product: Product;
+    recipes: Recipe[];
+    isActiveShowRecipe: boolean;
+    setIsActiveShowRecipe: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface SelectedRecipe {
+    material: Material;
+    amount_used: number | "";
+}
+
+const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:Props)=>{
+    
+    const emptyMaterial: Material = {
+    id: 0,
+    name: '',
+    price: 0,
+    unit: '',
+    amount: 1
+};
+
+
+    const {data, isPending:materialsIsLoading, error:materialsError} = useAllMaterials();
+    const [selectedRecipes, setSelectedRecipes] = useState<SelectedRecipe[]>([]);
+    const { mutate: updateRecipeMutate } = useUpdateRecipe();
+
+
+
+    if(materialsError) {
+        console.log("Error fetch data Material : ",materialsError)
+    }
     const materials = data?? [];
     // console.log("Data Material",data)
 
-    const hitungPokok = (used, amount, price)=>{
+    const hitungPokok = (used:number, amount:number, price:number):number=>{
     let hargaBahan = 0;
     if(used && amount && price){
       hargaBahan = used/amount * price;
@@ -21,15 +50,24 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
   }
 
   useEffect(()=>{
-        setSelectedRecipes(recipes);
-        console.log(selectedRecipes);
+          setSelectedRecipes(
+    recipes.map((recipe) => ({
+      material: recipe.material,
+      amount_used: recipe.amount_used,
+    }))
+  );
+        console.log("ini adalah recipes : ", recipes);
   },[recipes]);
+  
+  useEffect(()=>{
+    console.log(selectedRecipes);
+  },[selectedRecipes]);
 
 
 
 
   const handleAddIngredient =  ()=>{
-    setSelectedRecipes([...selectedRecipes, {material: [], amount_used: ""}]);
+    setSelectedRecipes([...selectedRecipes, {material: emptyMaterial, amount_used: ""}]);
   }
 
   const handleChangeRecipes = (index: number, field: string, value:string )=>{
@@ -47,14 +85,22 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
   }
 
   const totalHargaPokok = selectedRecipes.reduce((total, recipe) => {
-      return total + hitungPokok(recipe.amount_used, recipe.material.amount, recipe.material.price);
-    }, 0);
+    const used =
+        recipe.amount_used === "" ? 0 : recipe.amount_used;
+
+    return total + hitungPokok(
+        used,
+        recipe.material.amount,
+        recipe.material.price
+    );
+}, 0);
+
 
     const handleCloseForm = ()=>{
-        setIsActiveShowRecipe(false);
+        setIsActiveShowRecipe(!isActiveShowRecipe);
     }
 
-    const handleDeleteRecipes = (index)=>{
+    const handleDeleteRecipes = (index:number)=>{
         const newRecipes = [...selectedRecipes];
         newRecipes.splice(index,1);
 
@@ -63,7 +109,7 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
 
     const handleSubmit = async()=>{
        try{ 
-        const payload = {
+        const payload:UpdateRecipePayload = {
             _method:"PUT",
             materials: selectedRecipes
                 .filter(r => r.material?.id)
@@ -78,10 +124,10 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
         // console.log(product.id);
         //request ke API
 
-        updateRecipe({
-        id: product.id,
-        data: payload
-    });
+        updateRecipeMutate({
+  id: product.id,
+  data: payload,
+});
         setIsActiveShowRecipe(false);
         setSelectedRecipes([{material:emptyMaterial, amount_used: ""}]);
     }catch(error){
@@ -160,7 +206,9 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
                         <td>
                             <span className="text-muted">{recipe.material?.unit|| "-"}</span>
                         </td>
-                        <td className="text-end"><span className="fw-semibold">{formatCurrency(recipe.amount_used * (recipe.material.price / recipe.material.amount).toFixed(0))}</span></td>
+                        <td className="text-end"><span className="fw-semibold">{
+                        
+                        formatCurrency(Math.round(Number(recipe.amount_used) * (Number(recipe.material.price) / Number(recipe.material.amount))))}</span></td>
                         <td>
                             <button className="btn btn-sm btn-outline-danger delete-btn" type="button" aria-label="Delete ingredient" onClick={()=>handleDeleteRecipes(index)}> 
                                 <i className="bi bi-trash"></i> 
@@ -184,13 +232,13 @@ const CardCost = ({product,recipes, isActiveShowRecipe, setIsActiveShowRecipe}:p
             <div className="row g-3 profit-cost">
             <div className="col-md-5">
                 <div className="p-3 bg-light rounded d-flex justify-content-between align-items-center">
-                    <span className=" fw-semibold">Total Cost</span> <span className=" fw-bold">{formatCurrency(totalHargaPokok.toFixed(0))}</span>
+                    <span className=" fw-semibold">Total Cost</span> <span className=" fw-bold">{formatCurrency(Number(totalHargaPokok.toFixed(0)))}</span>
                 </div>
             </div>
             <div className="col-md-7">
                 <div className="p-3 rounded d-flex justify-content-between align-items-center" style={{backgroundColor: "#d1fae5"}}>
                     <span className=" fw-semibold" style={{color: "#065f46"}}>Profit Margin</span> 
-                    <span className=" fw-semibold" style={{color: "#059669"}}>{formatCurrency(product.price - totalHargaPokok.toFixed(0))}  ( {(((product.price - totalHargaPokok)/product.price)*100).toFixed(2)}% )</span>
+                    <span className=" fw-semibold" style={{color: "#059669"}}>{formatCurrency(product.price - Number(totalHargaPokok.toFixed(0)))}  ( {(((product.price - totalHargaPokok)/product.price)*100).toFixed(2)}% )</span>
                 </div>
             </div>
             </div>

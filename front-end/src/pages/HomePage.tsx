@@ -4,7 +4,7 @@ import { useTransactions } from "../api/useTransaction";
 import { formatCurrency } from "../components/FormatCurrency";
 const HomePage = () => {
     // Transaction Today
-    const {data:transactions, isLoading} = useTransactions();
+    const {data:transactions} = useTransactions();
     // console.log(transactions)
     const today = new Date().toISOString().split("T")[0];
     // console.log(today)
@@ -44,7 +44,7 @@ const HomePage = () => {
     );
     // console.log("TOP PRODUCT :", topProduct)
 
-    const topProductName = topProduct[1] > 0 ? topProduct[0] : "Belum ada transaksi";
+    const topProductName = Number(topProduct[1]) > 0 ? topProduct[0] : "Belum ada transaksi";
 
 
 

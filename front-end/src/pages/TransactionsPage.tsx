@@ -3,7 +3,34 @@ import { useState } from "react";
 import { formatCurrency,formatLocalDate } from "../components/FormatCurrency";
 import {getDayName} from "../api/getDate";
 import CardDetailTransaction from "../components/CardDetailTransaction";
-import { useEffect } from "react";
+import { Product } from "../types/product";
+
+interface Transaction{
+    id: number;
+    customer_name: string ;
+    pay: number;
+    total_price: number;
+    transaction_code: string;
+    transaction_date: string;
+    items: Item[];
+}
+
+interface Item{
+    id: number;
+    price: number;
+    product_id: number;
+    quantity: number;
+    subtotal: number;
+    transaction_id: number;
+    product: Product[];
+}
+
+interface SelectedDay {
+    date: string;
+    transaction: Transaction[];
+}
+
+
 const TransactionsPage = ()=>{
 
     const {data: transactions, isLoading: transactionsIsLoading, error: transactionsError} = useTransactions();
@@ -19,7 +46,6 @@ const TransactionsPage = ()=>{
         : null;
         });
 
-        console.log("Transaksi Bulan Ini ", filteredDataMonth);
      const months = [
         "January", "February", "March", "April",
         "May", "June", "July", "August",
@@ -29,7 +55,7 @@ const TransactionsPage = ()=>{
     const currentYear = new Date().getFullYear();
     
     
-    const groupedTransacitons = filteredDataMonth.reduce((acc,item)=>{
+    const groupedTransacitons:Record<string, Transaction[]> = filteredDataMonth.reduce((acc,item)=>{
         const date = item.transaction_date;
         if(!acc[date]){
             acc[date] = [];
@@ -62,26 +88,9 @@ const TransactionsPage = ()=>{
     const sumTransaction = (t) =>
     t.items.reduce((itemSum, item) => itemSum + item.subtotal, 0);
 
-    const [selectedDay, setSelectedDay] = useState(null);
+    const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
-    useEffect(() => {
-    if (!selectedDay) return;
-
-    const updated = groupedTransacitons[selectedDay.date];
-
-    if (!updated) {
-        // jika semua transaksi di tanggal itu sudah terhapus → close popup
-        setSelectedDay(null);
-        return;
-    }
-
-    // update data terbaru
-    setSelectedDay({
-        date: selectedDay.date,
-        transaction: updated
-    });
-
-}, [transactions]);
+    
 
 
     return(
@@ -138,14 +147,15 @@ const TransactionsPage = ()=>{
                                 </thead>
                                 <tbody>
                                     {
+                                        transactionsError ? (<p>Oops Data Transaction Error</p>) : 
+                                        transactionsIsLoading ? (<p>Loading...</p>) : 
                                         filteredDataMonth.length<1 ? (
                                             <p>Tidak ada transaksi di bulan ini</p>
                                         ) : 
                                         Object.entries(groupedTransacitons).map(([date,transaction],index)=>{
                                             const productSummary = getDailyProductSummary(transaction)
-                                            console.log("ITEMS DATA:", transactions[0].items);
+console.log("Data Product Summary: ", productSummary)
 
-                                            console.log("Produk Summary :",productSummary)
                                        return (
                                         <tr key={index}>
                                             <td>{index + 1}</td>
@@ -163,7 +173,7 @@ const TransactionsPage = ()=>{
                                                         Object.entries(productSummary).map(([name,qty])=>(
 
                                                         <span className="product-tag">
-                                                            {name} x {qty}
+                                                            {name} x {qty as number}
                                                         </span>
                                                         ))
                                                     }
@@ -220,10 +230,9 @@ const TransactionsPage = ()=>{
                             </div>
                         </div>
                     </div>
-                    <CardDetailTransaction 
-                    selectedDay={selectedDay} 
-                    key={selectedDay}
-                    onClose={()=>setSelectedDay(null)}></CardDetailTransaction>
+                        <CardDetailTransaction 
+                        selectedDay={selectedDay} 
+                        onClose={()=>setSelectedDay(null)}></CardDetailTransaction>
         </>
     )
 }

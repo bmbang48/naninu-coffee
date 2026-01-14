@@ -3,8 +3,9 @@
   import { useState } from "react";
   import FormProduct from "../components/FormProduct";
 import ConfirmationAlert from "../components/ConfirmationAlert";
-import NotificationAlert from "../components/NotificationAlert";
 import { formatCurrency } from "../components/FormatCurrency";
+import { Product } from "../types/product";
+
 
   const ProductPage = () => {
     const {data: products, isLoading:productsIsLoading, error: productsError} = useProducts();
@@ -13,9 +14,7 @@ import { formatCurrency } from "../components/FormatCurrency";
     const items = products?.data??[];
 
     const [isActiveForm, setIsActiveForm] = useState(false);
-    const [formData, setFormData] = useState({});
-    const [isSuccess, setIsSuccess] = useState(false); 
-    const [isConfirm, setIsConfirm] = useState(false); 
+    const [formData, setFormData] = useState<Product | null>(null);
     const [isActiveConfirmDelete, setIstActiveConfirmDelete] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
     const [id, setId] = useState(0);
@@ -23,14 +22,13 @@ import { formatCurrency } from "../components/FormatCurrency";
     
     
     const handleAddProduct = () => {
-      setFormData({});
+      setFormData(null);
       setIsActiveForm(!isActiveForm);
       console.log(isActiveForm);
     }
     
-    const handleEditProduct = (formData:object) => {
-      // console.log(formData);
-      setFormData(formData);
+    const handleEditProduct = (product:Product) => {
+      setFormData(product);
       setIsActiveForm(!isActiveForm);
     }
     
@@ -76,9 +74,6 @@ import { formatCurrency } from "../components/FormatCurrency";
           setIsConfirm={setIstActiveConfirmDelete} 
           isConfirmDelete={isConfirmDelete} 
           setIsConfirmDelete={setIsConfirmDelete} /> : null
-        }
-        {
-          isSuccess ? <NotificationAlert message="Produk Berhasil Ditambahkan" /> : null
         }
 
         <button className="btn btn-success mb-2" onClick={handleAddProduct}>Add Product</button>

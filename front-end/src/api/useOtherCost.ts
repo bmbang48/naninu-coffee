@@ -1,10 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { baseUrl } from './baseUrl';
+import { getCsrfCookie } from './csrf';
 
 
-await fetch('http://127.0.0.1:8000/sanctum/csrf-cookie', {
-  credentials: 'include'
-});
 
 const fetchOtherCosts = async () => {
     const response = await fetch(`${baseUrl}/api/other-cost`, {
@@ -31,6 +29,7 @@ export const useOtherCosts = () => {
 };
 
 const storeOtherCost = async (data: FormData) =>{
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/other-cost`, {
         method: 'POST',
         credentials: 'include',
@@ -52,12 +51,13 @@ export const useStoreOtherCost = () => {
     return useMutation({
         mutationFn: storeOtherCost,
         onSuccess: () =>{
-            queryClient.invalidateQueries(['other-costs']);
+            queryClient.invalidateQueries({ queryKey: ['other-costs'] });
         }
     });
 };
 
 const deleteOtherCost = async (id: number) =>{
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/other-cost/${id}`,{
         method: 'DELETE',
         credentials: 'include',
@@ -76,12 +76,13 @@ export const useDeleteOtherCost = () =>{
     return useMutation({
         mutationFn: deleteOtherCost,
         onSuccess: () =>{
-            queryClient.invalidateQueries(['other-costs']);
+            queryClient.invalidateQueries({ queryKey: ['other-costs'] });
         }
     });
 };
 
 const updateOtherCost = async({id, data}: {id:number, data: FormData}) => {
+    await getCsrfCookie();
     const response = await fetch(`${baseUrl}/api/other-cost/${id}`, {
         method: 'POST',
         credentials: 'include',
@@ -101,7 +102,7 @@ export const useUpdateOtherCost = () =>{
     return useMutation({
         mutationFn: updateOtherCost,
         onSuccess: () =>{
-            queryClient.invalidateQueries(['other-costs']);
+            queryClient.invalidateQueries({ queryKey: ['other-costs'] });
         }
     });
 }

@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { useProducts, useDeleteProduct } from "../api/useProduct";
+import { useProducts} from "../api/useProduct";
 import { baseUrl } from "../api/baseUrl";
 import NotificationAlert from "../components/NotificationAlert";
 import { formatCurrency } from "../components/FormatCurrency";
 import { unformatCurrency } from "../components/FormatCurrency";
-import { set } from "zod";
 import { useStoreTransaction } from "../api/useTransaction";
 import { useReactToPrint } from "react-to-print";
 
@@ -18,7 +17,7 @@ const CashierPage = () => {
       type Product = {
         id: number;
         product_name: string;
-        quantity: number;
+        qty: number;
         price: number;
       }
 
@@ -53,6 +52,7 @@ const CashierPage = () => {
       (sum,p) => sum + p.price*p.qty,
       0
     );
+    setTax(0);
 
     // const taxAmount = subtotal * 0.10;
     // setDiskon(taxAmount)
@@ -121,10 +121,6 @@ const CashierPage = () => {
           alert("Uang tidak cukup");
           return;
         }
-        const orderDetails = productsList.map((product) => ({
-          product_id: product.id,
-          qty: product.qty,
-        }));
 
         const items = productsList.map((product) => ({
           product_id: product.id,
@@ -155,7 +151,7 @@ const CashierPage = () => {
           setKembalian(0);
           setIsSave(!isSave);
         },
-        onError: (err: any) => {
+        onError: (err) => {
           console.error("Error saving transaction:" , err);
       } 
     }
@@ -192,12 +188,14 @@ const CashierPage = () => {
           isSuccess={isSuccess}
           setIsSuccess={setIsSuccess}
           subject="Pembayaran Berhasil"
-        />) : null}
+          handleCloseForm={()=>setIsSuccess(false)}
+          />) : null}
       {isSave ? (<NotificationAlert
           message="Transaksi Berhasil Disimpan"
           isSuccess={isSave}
           setIsSuccess={setIsSave}
           subject="Transaksi Berhasil Disimpan"
+          handleCloseForm={()=>setIsSuccess(false)}
         />) : null}
         <div className="row">
             <div className="col-7">
@@ -235,7 +233,7 @@ const CashierPage = () => {
                               const item = productsList.find(p=> p.id===product.id);
                               return item ? (
                                 <input 
-                                  type="number"p
+                                  type="number"
                                   className="form-control"
                                   value={item.qty}
                                   onChange={(e)=>{
@@ -338,7 +336,7 @@ const CashierPage = () => {
                             <input type="text" className="input-field" id="paymentAmount" placeholder="Rp. xxx.xxx" onChange={
                               (e)=> {
                                                           const cleanValue = unformatCurrency(e.target.value);
-                                                          setBayar(cleanValue)
+                                                          setBayar(Number(cleanValue))
                             } }
                             value={formatCurrency(bayar)} />
                         </div>

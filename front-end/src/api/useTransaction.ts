@@ -1,12 +1,30 @@
 import { baseUrl } from "./baseUrl";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { getCsrfCookie } from "./csrf";
+
+interface TransactionItemPayload {
+  product_id: number;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+interface StoreTransactionPayload {
+  transaction_code: string;
+  transaction_date: string;
+  customer_name: string;
+  discount: number;
+  total_price: number;
+  pay: number;
+  change: number;
+  tax: number;
+  items: TransactionItemPayload[];
+}
 
 
-const storeTransaction = async (payload: any) => {
-    await fetch ('http://localhost:8000/sanctum/csrf-cookie', {
-        credentials: 'include'
-    });
+const storeTransaction = async (payload: StoreTransactionPayload) => {
+    await getCsrfCookie();
     console.log("payload dikirim", JSON.stringify(payload, null, 2));
     
     const response = await axios.post(`${baseUrl}/api/transactions`, payload, {
@@ -25,7 +43,7 @@ export const useStoreTransaction = () => {
     return useMutation({
         mutationFn: storeTransaction,
         onSuccess: () => {
-            queryClient.invalidateQueries(["transactions"]);
+            queryClient.invalidateQueries({queryKey: ['transactions']});
         }
     });
 };
@@ -78,7 +96,7 @@ export const useDeleteTransaction = () =>{
   return useMutation({
     mutationFn: deleteTransaction,
     onSuccess: ()=>{
-      queryClient.invalidateQueries(['transactions']);
+      queryClient.invalidateQueries({queryKey: ['transactions']});
     }
   });
 };

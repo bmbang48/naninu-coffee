@@ -2,12 +2,7 @@ import { useStoreOtherCost,useUpdateOtherCost } from "../api/useOtherCost";
 import { useEffect, useState } from "react";
 import { formatCurrency, unformatCurrency } from "../components/FormatCurrency";
 
-const FormOtherCost = ({isActiveForm, setIsActiveForm, formData, mode}: props) =>{
-
-    const {mutate: storeOtherCost, isPending: storeIsLoading, isSuccess: storeIsSuccess, isError: storeIsError} = useStoreOtherCost();
-    const {mutate: updateOtherCost, isPending: updateIsLoading, isSuccess: updateIsSuccess, isError: updateIsError} = useUpdateOtherCost();
-
-    interface Props {
+interface Props {
         isActiveForm: boolean;
         setIsActiveForm: (isActiveForm: boolean) => void;
         formData?: {
@@ -17,6 +12,12 @@ const FormOtherCost = ({isActiveForm, setIsActiveForm, formData, mode}: props) =
         },
         mode: 'create' | 'edit';
     }
+const FormOtherCost = ({isActiveForm, setIsActiveForm, formData, mode}: Props) =>{
+
+    const {mutate: storeOtherCost, isPending: storeIsLoading, isSuccess: storeIsSuccess, isError: storeIsError} = useStoreOtherCost();
+    const {mutate: updateOtherCost, isPending: updateIsLoading, isSuccess: updateIsSuccess, isError: updateIsError} = useUpdateOtherCost();
+
+    
     const [localFormData, setLocalFormData] = useState({
         name_cost: '',
         cost_per_product: '',

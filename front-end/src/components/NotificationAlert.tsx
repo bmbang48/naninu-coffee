@@ -1,9 +1,17 @@
-const NotificationAlert = ({message, subject, isSuccess, setIsSuccess, handleCloseForm}:props)=>{
+interface Props{
+    message: string;
+    subject: string;
+    isSuccess: boolean;
+    setIsSuccess: React.Dispatch<React.SetStateAction<boolean>>;
+    handleCloseForm: ()=> void;
+}
+const NotificationAlert = ({message, subject, isSuccess, setIsSuccess, handleCloseForm}:Props)=>{
     const handleClose = () => {
         setIsSuccess(false);
         handleCloseForm();
     }
     return (
+        isSuccess ? (
         <div className="popup-confirmation">
             <div className="modal-dialog">
                 <div className="modal-content">
@@ -20,6 +28,8 @@ const NotificationAlert = ({message, subject, isSuccess, setIsSuccess, handleClo
                 </div>
             </div>
         </div>
+        )
+        : (<p>Data gagal ditambahkan</p>)
     );
 }
 

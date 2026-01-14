@@ -2,7 +2,6 @@ import { useMaterials,useDeleteMaterial } from "../api/useMaterial";
 import { useState } from "react";
 import FormMaterial from "../components/FormMaterial";
 import ConfirmationAlert from "../components/ConfirmationAlert";
-import { set } from "zod";
 import { formatCurrency } from "../components/FormatCurrency";
 
 const MaterialPage = () => {
@@ -16,11 +15,10 @@ const MaterialPage = () => {
     const lastPage = data?.last_page ?? 1;
 
 
-    const {mutate: deleteMaterial, isPending:deleteIsLoading } = useDeleteMaterial();
+    const {mutate: deleteMaterial } = useDeleteMaterial();
 
     const [isActiveForm, setIsActiveForm] = useState(false);
 
-    const [isConfirm, setIsConfirm] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
     const [id, setId] = useState(0);
     const [isActiveConfirmDelete, setIsActiveConfirmDelete] = useState(false);
@@ -116,9 +114,9 @@ const MaterialPage = () => {
          <div className="col-12 mt-3">
                 <nav aria-label="Product pagination">
                     <ul className="pagination justify-content-center">
-                        <li className="page-item">
-                            <a className="page-link" disabled={currentPage === 1}
-                                onClick={() => setPage((old)=> - 1)}
+                        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                            <a className="page-link"
+                                onClick={() => setPage((old)=> old - 1)}
                                 >
                                     {"<"}
                             </a>
@@ -130,8 +128,8 @@ const MaterialPage = () => {
                                 </a>
                             </li>
                         ))}
-                        <li className="page-item">
-                            <a className="page-link" disabled={currentPage === lastPage}
+                        <li className={`page-item ${currentPage === lastPage ? "disabled" : ""}`}>
+                            <a className="page-link"
                                 onClick={()=> setPage((old)=> old + 1)}
                                 >
                                 {">"}

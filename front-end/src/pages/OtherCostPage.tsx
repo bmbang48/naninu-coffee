@@ -7,10 +7,9 @@ import { formatCurrency } from "../components/FormatCurrency";
 const OtherCostPage = () => {
 
     const {data: otherCosts, isLoading: otherCostsIsLoading, error: otherCostsError} = useOtherCosts();
-    const {mutate: deleteOtherCost, isPending: deleteIsLoading} = useDeleteOtherCost();
+    const {mutate: deleteOtherCost} = useDeleteOtherCost();
     const [isActiveForm, setIsActiveForm] = useState(false);
     const [formData, setFormData] = useState({});
-    const [isConfirm, setIsConfirm] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
     const [id, setId] = useState(0);
     const [isActiveConfirmDelete, setIsActiveConfirmDelete] = useState(false);

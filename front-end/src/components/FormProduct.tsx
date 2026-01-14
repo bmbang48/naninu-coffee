@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useStoreProduct,useUpdateProduct } from "../api/useProduct";
 import { formatCurrency, unformatCurrency } from "./FormatCurrency";
+import NotificationAlert from "./NotificationAlert";
 
 interface Props{
   isActiveForm: boolean;
@@ -14,13 +15,13 @@ interface Props{
   };
   mode: 'create' | 'edit';
 }
-const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => { 
+const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:Props) => { 
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [localFormData, setLocalFormData] = useState({
       product_name: '',
-      price:  0,
       description: '',
+      price: 0,
       image: null as File | null,
     });
     const [price, setPrice] = useState<number>(0);
@@ -28,9 +29,11 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
     
     useEffect(()=>{
       if (mode === 'edit' && formData) {
+        // console.log("INI FORM DATA :",formData)
         setLocalFormData({
           product_name: formData.product_name || '',
           description: formData.description || '',
+          price: formData.price|| 0,
           image: formData.image instanceof File ? formData.image : null, // Ensure image is a File or null  
         });
         setPrice(formData.price || 0);
@@ -39,13 +42,15 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
     product_name: '',
     description: '',
     image: null,
+    price: 0,
   });
   setPrice(0)
 }
   }, [formData,mode]);
 
-    const {mutate, isPending,isSuccess,isError} = useStoreProduct();
-    const {mutate: updateProduct, isPending: updateIsPending, isSuccess: updateIsSuccess, isError: updateIsError, updateProductMutation} = useUpdateProduct();
+    const {mutate, isSuccess: storeIsSuccess, isError:storeError} = useStoreProduct();
+    const {mutate: updateProduct,  isSuccess: updateIsSuccess, isError: updateError} = useUpdateProduct();
+    const [isSuccess,setIsSuccess] = useState(false);
 
     const handleSubmit = (e: React.FormEvent)=>{
       e.preventDefault();
@@ -59,16 +64,29 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
       mutate(data);
       setLocalFormData({
         product_name: '',
-        price: 0,
         description: '',
         image: null,
+        price: 0,
       });
+      setPrice(0);
       // setIsActiveForm(false);
       if(isActiveForm){
         setIsActiveForm(false);
       }
     };
-
+  
+  if(storeIsSuccess){
+    setIsSuccess(storeIsSuccess);
+    return (<NotificationAlert message="Product baru berhasil ditambahkan" subject="Produk ditambahkan" isSuccess={isSuccess} setIsSuccess={setIsSuccess} 
+          handleCloseForm={()=>setIsSuccess(false)}/>)
+  }
+  
+  if(storeError){
+    setIsSuccess(storeError);
+    return (<NotificationAlert message="Product baru berhasil ditambahkan" subject="Produk ditambahkan" isSuccess={isSuccess} setIsSuccess={setIsSuccess} 
+          handleCloseForm={()=>setIsSuccess(false)}/>)
+  }
+  
     const handleSubmitUpdate = (e:  React.FormEvent)=>{
       e.preventDefault();
       if(!formData.id){
@@ -90,15 +108,27 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
 
       updateProduct({id:formData.id, data});
       
+      if(updateIsSuccess){
+    setIsSuccess(updateIsSuccess);
+    return (<NotificationAlert message="Product baru berhasil ditambahkan" subject="Produk ditambahkan" isSuccess={isSuccess} setIsSuccess={setIsSuccess} 
+          handleCloseForm={()=>setIsSuccess(false)}/>)
+  }
+  
+  if(updateError){
+    setIsSuccess(updateError);
+    return (<NotificationAlert message="Product baru berhasil ditambahkan" subject="Produk ditambahkan" isSuccess={isSuccess} setIsSuccess={setIsSuccess} 
+          handleCloseForm={()=>setIsSuccess(false)}/>)
+  }
 
       if(isActiveForm){
         setIsActiveForm(false);
         setLocalFormData({
         product_name: '',
-        price: 0,
         description: '',
         image: null,
+        price: 0,
       });
+      setPrice(0)
       }
     }
   
@@ -107,18 +137,16 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
     setIsActiveForm(false);
     setLocalFormData({
         product_name: '',
-        price: 0,
         description: '',
         image: null,
+        price:0,
       });
+    setPrice(0);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Reset the file input
     }
   }
-  useEffect(() => {
-  console.log("localFormData RESET:", localFormData);
-}, [localFormData]);
   
   return (
     <div className="form-product d-flex flex-column justify-content-center align-items-center">
@@ -138,7 +166,7 @@ const FormProduct = ({isActiveForm, setIsActiveForm, formData, mode}:props) => {
   value={price === 0 ? "" : formatCurrency(price)}
   onChange={(e) => {
     const numeric = unformatCurrency(e.target.value);
-    setPrice(numeric);
+    setPrice(Number(numeric));
   }}
 />
 

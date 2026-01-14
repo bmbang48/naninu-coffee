@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseUrl } from "./baseUrl";
+import { getCsrfCookie } from "./csrf";
 // React fetch
 
 
@@ -27,7 +28,7 @@ export const useProducts = () => {
 
 //Store Data
 const storeProduct = async (data: FormData) => {
-  console.log(data);
+  await getCsrfCookie();
   const response = await fetch(`${baseUrl}/api/products`, {
     method: 'POST',
     credentials: 'include',
@@ -48,12 +49,13 @@ export const useStoreProduct = () => {
   return useMutation ({
     mutationFn: storeProduct,
     onSuccess: () =>{
-      queryClient.invalidateQueries(['products']);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     }
   });
 };
 
 const deleteProduct = async (id:number) =>{
+  await getCsrfCookie();
   const response = await fetch(`${baseUrl}/api/products/${id}`, {
     method: 'DELETE',
     credentials: 'include',
@@ -75,12 +77,13 @@ export const useDeleteProduct = () =>{
   return useMutation({
     mutationFn: deleteProduct,
     onSuccess: ()=>{
-      queryClient.invalidateQueries(['products']);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     }
   });
 };
 
 const updateProduct = async({id,data}:{id:number,data:FormData})=>{
+  await getCsrfCookie();
   const response = await fetch(`${baseUrl}/api/products/${id}`,{
     method: 'POST',
     credentials: 'include',
@@ -100,7 +103,7 @@ export const useUpdateProduct = ()=>{
   return useMutation({
     mutationFn: updateProduct,
     onSuccess: ()=>{
-      queryClient.invalidateQueries(['products']);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     }
   });
 }
